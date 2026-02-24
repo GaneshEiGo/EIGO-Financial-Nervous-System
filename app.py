@@ -1,6 +1,6 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
 from scipy.stats import gaussian_kde
 from eigo_engine import run_engine, digital_twin
 
@@ -9,8 +9,8 @@ from eigo_engine import run_engine, digital_twin
 # ------------------------------------------------
 
 st.set_page_config(
-    page_title="EIGO — Financial Nervous System",
-    layout="wide"
+    page_title="EIGO",
+    layout="centered"
 )
 
 # ------------------------------------------------
@@ -23,24 +23,15 @@ st.caption("Financial Nervous System — Probabilistic Risk Engine")
 st.markdown("")
 
 # ------------------------------------------------
-# USER CONTROLS
+# CONTROLS
 # ------------------------------------------------
 
-colA, colB = st.columns(2)
+shock = st.slider(
+    "Fragility Shock Level",
+    0.0, 1.0, 0.0, 0.05
+)
 
-with colA:
-    shock = st.slider(
-        "Fragility Shock Level",
-        0.0, 1.0, 0.0, 0.05
-    )
-
-with colB:
-    sim_days = st.slider(
-        "Simulation Horizon (Days)",
-        30, 180, 90, 30
-    )
-
-st.markdown("---")
+st.markdown("")
 
 # ------------------------------------------------
 # RUN ENGINE
@@ -56,73 +47,86 @@ if st.button("Run Analysis"):
 
         twin = digital_twin(adjusted_instability)
 
-    st.success("Analysis Complete")
-
     # ------------------------------------------------
-    # METRICS SECTION
+    # KPI ROW
     # ------------------------------------------------
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
 
     col1.metric("Instability Index", adjusted_instability)
     col2.metric("Regime", results["regime"])
     col3.metric("90% Survival", twin["survival_90"])
-    col4.metric("80% Survival", twin["survival_80"])
 
     st.markdown("")
 
     # ------------------------------------------------
-    # DISTRIBUTION GRAPH (UPGRADED)
+    # MODERN INTERACTIVE DISTRIBUTION
     # ------------------------------------------------
 
     distribution = twin["distribution"]
     mean_value = np.mean(distribution)
     initial_capital = 1_000_000
     threshold_90 = 0.9 * initial_capital
-    threshold_80 = 0.8 * initial_capital
 
-    # Google-style color logic
-    if adjusted_instability < 0.3:
-        primary_color = "#34A853"  # Google green
-    elif adjusted_instability < 0.6:
-        primary_color = "#FBBC05"  # Google yellow
-    else:
-        primary_color = "#EA4335"  # Google red
-
-    fig, ax = plt.subplots(figsize=(9, 5))
-
-    # Histogram
-    ax.hist(distribution, bins=50, density=True, alpha=0.3, color=primary_color)
-
-    # Smooth density curve
     kde = gaussian_kde(distribution)
     x_range = np.linspace(min(distribution), max(distribution), 500)
-    ax.plot(x_range, kde(x_range), color=primary_color, linewidth=3)
+    density = kde(x_range)
 
-    # Reference lines
-    ax.axvline(initial_capital, linestyle="--", linewidth=2, color="#4285F4", label="Initial Capital")
-    ax.axvline(threshold_90, linestyle="--", linewidth=2, color="#FBBC05", label="90% Threshold")
-    ax.axvline(threshold_80, linestyle="--", linewidth=2, color="#EA4335", label="80% Threshold")
-    ax.axvline(mean_value, linestyle="-", linewidth=3, color=primary_color, label="Mean Outcome")
+    fig = go.Figure()
 
-    ax.set_xlabel("Final Capital")
-    ax.set_ylabel("Probability Density")
-    ax.set_title("Digital Twin Capital Distribution")
+    # Smooth density curve
+    fig.add_trace(
+        go.Scatter(
+            x=x_range,
+            y=density,
+            mode="lines",
+            line=dict(width=3),
+            name="Distribution"
+        )
+    )
 
-    ax.legend()
-    ax.grid(alpha=0.2)
+    # Vertical markers
+    fig.add_vline(
+        x=initial_capital,
+        line_width=2,
+        line_dash="dash",
+        annotation_text="Initial Capital",
+        annotation_position="top"
+    )
 
-    st.pyplot(fig)
+    fig.add_vline(
+        x=threshold_90,
+        line_width=2,
+        line_dash="dot",
+        annotation_text="90% Threshold",
+        annotation_position="top"
+    )
+
+    fig.add_vline(
+        x=mean_value,
+        line_width=3,
+        annotation_text="Mean Outcome",
+        annotation_position="top"
+    )
+
+    fig.update_layout(
+        height=350,
+        margin=dict(l=20, r=20, t=40, b=20),
+        template="plotly_white",
+        showlegend=False
+    )
+
+    fig.update_yaxes(visible=False)
+
+    st.plotly_chart(fig, use_container_width=True)
 
     # ------------------------------------------------
-    # LIVE INTERPRETATION PANEL
+    # LIVE INTERPRETATION
     # ------------------------------------------------
-
-    st.markdown("---")
 
     if adjusted_instability < 0.3:
-        st.success("System is stable. Risk levels are structurally low.")
+        st.success("System stability is strong.")
     elif adjusted_instability < 0.6:
-        st.warning("Moderate systemic stress detected. Monitor portfolio risk exposure.")
+        st.warning("Moderate systemic stress detected.")
     else:
-        st.error("High systemic instability. Capital preservation strategies advised.")
+        st.error("High systemic instability.")
