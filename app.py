@@ -4443,7 +4443,11 @@ with row53_col1:
         template="plotly_white"
     )
 
-    st.plotly_chart(fig_extreme, use_container_width=True)
+    st.plotly_chart(
+        fig_extreme,
+        use_container_width=True,
+        key="p29_extreme_shock_gauge_unique"
+    )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -4469,7 +4473,11 @@ with row53_col2:
         template="plotly_white"
     )
 
-    st.plotly_chart(fig_absorption, use_container_width=True)
+    st.plotly_chart(
+        fig_absorption,
+        use_container_width=True,
+        key="p29_absorption_capacity_unique"
+    )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -4511,7 +4519,11 @@ with row54_col1:
     fig_failure.update_xaxes(visible=False)
     fig_failure.update_yaxes(visible=False)
 
-    st.plotly_chart(fig_failure, use_container_width=True)
+    st.plotly_chart(
+        fig_failure,
+        use_container_width=True,
+        key="p29_failure_wave_unique"
+    )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -4548,7 +4560,7 @@ st.markdown("<div class='section'>", unsafe_allow_html=True)
 st.markdown("<div class='section-title'>Executive Intelligence Summary</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# GLOBAL EXECUTIVE SCORE
+# EXECUTIVE SCORE CALCULATION
 # -------------------------------
 
 executive_risk_score = min(
@@ -4591,7 +4603,11 @@ with row55_col1:
         template="plotly_white"
     )
 
-    st.plotly_chart(fig_exec_risk, use_container_width=True)
+    st.plotly_chart(
+        fig_exec_risk,
+        use_container_width=True,
+        key="p30_executive_risk_gauge_unique"
+    )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -4617,7 +4633,11 @@ with row55_col2:
         template="plotly_white"
     )
 
-    st.plotly_chart(fig_exec_stability, use_container_width=True)
+    st.plotly_chart(
+        fig_exec_stability,
+        use_container_width=True,
+        key="p30_system_stability_gauge_unique"
+    )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -4628,7 +4648,7 @@ with row55_col2:
 row56_col1, row56_col2 = st.columns(2)
 
 # --------------------------------
-# PANEL 3: Executive Classification
+# PANEL 3: Executive Risk Classification
 # --------------------------------
 
 with row56_col1:
@@ -4651,20 +4671,25 @@ with row56_col1:
     st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------
-# PANEL 4: Unified System Summary
+# PANEL 4: Unified Institutional Summary
 # --------------------------------
 
 with row56_col2:
     st.markdown("<div class='card'>", unsafe_allow_html=True)
 
     summary_text = f"""
-    Current dominant macro phase: {dominant_phase}.
-    Dominant forward scenario: {dominant_scenario}.
-    Long-term stability projection: {round(projection_strength, 3)}.
-    Resilience index: {round(resilience_index, 3)}.
+    Dominant Macro Phase: {dominant_phase}
+    
+    Dominant Forward Scenario: {dominant_scenario}
+    
+    Long-Term Stability Projection: {round(projection_strength, 3)}
+    
+    System Resilience Index: {round(resilience_index, 3)}
+    
+    Net Systemic Risk: {round(net_systemic_risk, 3)}
     """
 
-    st.markdown("<h3 style='text-align:center;'>Unified System Summary</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align:center;'>Unified Institutional Summary</h3>", unsafe_allow_html=True)
     st.write(summary_text)
 
     st.markdown("</div>", unsafe_allow_html=True)
