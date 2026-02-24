@@ -1,11 +1,10 @@
 import streamlit as st
-import numpy as np
 import plotly.graph_objects as go
-import time
+import numpy as np
 
-# ======================================================
-# PAGE CONFIGURATION
-# ======================================================
+# ------------------------------
+# PAGE CONFIG
+# ------------------------------
 
 st.set_page_config(
     page_title="EIGO — Financial Nervous System",
@@ -13,228 +12,106 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ======================================================
-# GLOBAL STYLE (SINGLE INJECTION)
-# ======================================================
+# ------------------------------
+# GLOBAL LAYOUT HELPERS
+# ------------------------------
+
+def section(title):
+    st.markdown(f"<div class='section-title'>{title}</div>", unsafe_allow_html=True)
+
+def two_panel(left_func, right_func, ratio=(2,1)):
+    """
+    Render two panels side by side.
+    left_func and right_func are functions that render content.
+    """
+    col_left, col_right = st.columns(ratio)
+    with col_left:
+        left_func()
+    with col_right:
+        right_func()
+
+# ------------------------------
+# GLOBAL CSS
+# ------------------------------
 
 st.markdown("""
 <style>
 
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
+/* RESET DEFAULT UI */
+#MainMenu, footer, header {visibility:hidden;}
 
+/* FONT SYSTEM */
 html, body, [class*="css"] {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0;
-    padding: 0;
-    color: #111111;
 }
 
+/* BACKGROUND */
 body {
-    background: linear-gradient(
-        180deg,
-        #ffffff 0%,
-        #f6f8fb 40%,
-        #edf1f7 100%
-    );
+    background: #fcfcfd;
 }
 
-.block-container {
-    max-width: 1400px;
-    margin: auto;
-    padding-top: 80px;
-    padding-bottom: 80px;
-    padding-left: 6%;
-    padding-right: 6%;
-}
-
-.section {
-    margin-top: 140px;
-    margin-bottom: 140px;
-}
-
+/* SECTIONS */
 .section-title {
-    font-size: 36px;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 70px;
-    letter-spacing: -1px;
+    font-size:42px;
+    font-weight:600;
+    text-align:center;
+    margin:80px 0 40px 0;
 }
 
-.hero-title {
-    font-size: 72px;
-    font-weight: 600;
-    letter-spacing: -2.5px;
-    text-align: center;
-}
-
-.hero-subtitle {
-    font-size: 24px;
-    color: #6e6e73;
-    text-align: center;
-    margin-top: 10px;
-}
-
+/* METRIC CARD */
 .metric-card {
-    background: rgba(255,255,255,0.75);
-    border-radius: 24px;
-    padding: 30px;
-    text-align: center;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 30px 80px rgba(0,0,0,0.05);
-    transition: all 0.4s ease;
+    background:rgba(255,255,255,0.75);
+    padding:26px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 20px 80px rgba(0,0,0,0.06);
 }
 
-.metric-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 40px 90px rgba(0,0,0,0.08);
-}
-
-div.stButton > button {
-    background: #111111;
-    color: white;
-    border-radius: 999px;
-    padding: 14px 40px;
-    border: none;
-}
-
-div.stButton > button:hover {
-    background: #333333;
+/* SLIDER */
+.stSlider > div > div {
+    margin-top:8px;
+    margin-bottom:8px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ======================================================
+# ------------------------------
 # HERO
-# ======================================================
+# ------------------------------
 
-st.markdown("<div class='hero-title'>EIGO</div>", unsafe_allow_html=True)
-st.markdown("<div class='hero-subtitle'>Financial Nervous System</div>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; font-size:68px;'>EIGO</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align:center; color:#6e6e73;'>Financial Nervous System</h3>", unsafe_allow_html=True)
 
-# ======================================================
-# CONTROL SECTION (LIVE)
-# ======================================================
+# ------------------------------
+# CONTROL (Live Instability)
+# ------------------------------
 
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>System Control Interface</div>", unsafe_allow_html=True)
+section("System Control Interface")
 
-instability_value = st.slider(
-    "Macro Instability Amplifier",
-    0.0,
-    1.0,
-    0.3,
-    0.01
-)
+instability_value = st.slider("Macro Instability Level", 0.0, 1.0, 0.3, 0.01)
 
-st.markdown("</div>", unsafe_allow_html=True)
+# ------------------------------
+# PLACEHOLDER SECTIONS
+# ------------------------------
 
-# ======================================================
-# LIVE INSTABILITY REACTOR
-# ======================================================
+section("1) Instability Reactor")
+st.write("⏳ Reactor will display here.")
 
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>Instability Reactor</div>", unsafe_allow_html=True)
+section("2) Forward Structural Evolution")
+st.write("⏳ Evolution chart will display here.")
 
-reactor_size = 220 + 200 * instability_value
-glow_strength = 20 + instability_value * 120
+section("3) Risk Metrics Grid")
+st.write("⏳ Metrics grid will display here.")
 
-st.markdown(f"""
-<div style="
-    width:100%;
-    display:flex;
-    justify-content:center;
-    margin-top:40px;
-    margin-bottom:40px;
-">
-    <div style="
-        width:{reactor_size}px;
-        height:{reactor_size}px;
-        border-radius:50%;
-        background: radial-gradient(circle at center,
-            rgba(255,255,255,0.95) 0%,
-            rgba(0,0,0,0.85) 100%);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-size:46px;
-        font-weight:600;
-        color:#111111;
-        box-shadow: 0 0 {glow_strength}px rgba(0,0,0,0.2);
-        transition: all 0.4s ease;
-    ">
-        {round(instability_value,3)}
-    </div>
-</div>
-""", unsafe_allow_html=True)
+section("4) Contagion Network")
+st.write("⏳ Network will display here.")
 
-st.markdown("</div>", unsafe_allow_html=True)
+section("5) Tail Risk")
+st.write("⏳ Tail risk chart will display here.")
 
-# ======================================================
-# LIVE FORWARD EVOLUTION
-# ======================================================
+# ------------------------------
+# FOOTER
+# ------------------------------
 
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>Forward Structural Evolution</div>", unsafe_allow_html=True)
-
-projection_steps = 180
-simulations = 600
-base_capital = 1_000_000
-
-volatility = 0.006 + instability_value * 0.1
-drift = 0.0002
-
-paths = []
-
-for _ in range(simulations):
-    returns = np.random.normal(drift, volatility, projection_steps)
-    path = base_capital * np.cumprod(1 + returns)
-    paths.append(path)
-
-paths = np.array(paths)
-
-median_path = np.median(paths, axis=0)
-q05 = np.quantile(paths, 0.05, axis=0)
-q95 = np.quantile(paths, 0.95, axis=0)
-
-time_axis = np.arange(projection_steps)
-
-fig = go.Figure()
-
-fig.add_trace(go.Scatter(
-    x=time_axis,
-    y=q95,
-    mode='lines',
-    line=dict(width=0),
-    showlegend=False
-))
-
-fig.add_trace(go.Scatter(
-    x=time_axis,
-    y=q05,
-    fill='tonexty',
-    fillcolor='rgba(0,0,0,0.08)',
-    mode='lines',
-    line=dict(width=0),
-    showlegend=False
-))
-
-fig.add_trace(go.Scatter(
-    x=time_axis,
-    y=median_path,
-    mode='lines',
-    line=dict(width=4, color='black'),
-    showlegend=False
-))
-
-fig.update_layout(
-    height=520,
-    template="plotly_white",
-    margin=dict(l=0, r=0, t=0, b=0)
-)
-
-fig.update_xaxes(visible=False)
-fig.update_yaxes(visible=False)
-
-st.plotly_chart(fig, use_container_width=True)
+st.markdown("<div style='text-align:center; margin-top:80px; color:#8e8e93;'>EIGO — Build by you • No Money • Institutional First</div>", unsafe_allow_html=True)
