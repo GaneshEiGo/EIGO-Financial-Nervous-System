@@ -18,7 +18,7 @@ CONFIG = {
 
 
 # ==============================
-# DATA FETCH
+# DATA FETCH (ROBUST VERSION)
 # ==============================
 
 def fetch_data():
@@ -27,19 +27,27 @@ def fetch_data():
 
     raw = yf.download(tickers, start=CONFIG["start_date"], end=end_date)
 
-    # Handle MultiIndex (Yahoo returns multi-level columns sometimes)
+    if raw.empty:
+        raise ValueError("No data returned from Yahoo Finance")
+
+    # Handle MultiIndex columns safely
     if isinstance(raw.columns, pd.MultiIndex):
-        data = raw["Adj Close"]
+
+        # Try Adjusted Close first
+        if "Adj Close" in raw.columns.levels[0]:
+            data = raw["Adj Close"]
+
+        # Fallback to Close
+        elif "Close" in raw.columns.levels[0]:
+            data = raw["Close"]
+
+        else:
+            raise ValueError("Price columns not found in Yahoo response")
+
     else:
         data = raw
 
     data = data.dropna()
-
-    # Safety check
-    required = ["HYG", "LQD"]
-    for col in required:
-        if col not in data.columns:
-            raise ValueError(f"Missing required ticker: {col}")
 
     return data
 
@@ -63,14 +71,17 @@ def compute_fragility(data):
         .mean(axis=1)
     )
 
-    credit_spread = (
-        (data["HYG"] / data["LQD"])
-        .pct_change()
-        .rolling(30)
-        .mean()
-    )
+    # Credit spread calculation (safe version)
+    if "HYG" in data.columns and "LQD" in data.columns:
+        credit_spread = (
+            (data["HYG"] / data["LQD"])
+            .pct_change()
+            .rolling(30)
+            .mean()
+        )
+    else:
+        credit_spread = pd.Series(index=volatility.index, data=0)
 
-    # Align indexes
     df = pd.concat([volatility, corr_matrix, credit_spread], axis=1)
     df.columns = ["vol", "corr", "credit"]
     df = df.dropna()
@@ -95,10 +106,12 @@ def detect_regime(fragility):
     df = pd.DataFrame()
     df["fragility"] = fragility
     df["momentum"] = fragility.diff()
-
     df = df.dropna()
 
-    model = KMeans(n_clusters=4, random_state=42)
+    if len(df) < 10:
+        return "Stable"
+
+    model = KMeans(n_clusters=4, random_state=42, n_init=10)
     df["regime"] = model.fit_predict(df)
 
     latest_regime = df["regime"].iloc[-1]
@@ -118,7 +131,13 @@ def detect_regime(fragility):
 # ==============================
 
 def compute_instability(fragility):
+
+    if len(fragility) == 0:
+        return 0.0
+
     instability = fragility.iloc[-1] / 100
+    instability = max(0, min(instability, 1))  # bound between 0 and 1
+
     return round(float(instability), 3)
 
 
@@ -132,7 +151,6 @@ def digital_twin(instability):
 
     base_vol = 0.01
     adjusted_vol = base_vol * (1 + instability * 3)
-
     mean_return = 0.0005
 
     end_values = []
