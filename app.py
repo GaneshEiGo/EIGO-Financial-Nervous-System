@@ -114,136 +114,127 @@ st.markdown("<div class='hero-title'>EIGO</div>", unsafe_allow_html=True)
 st.markdown("<div class='hero-subtitle'>Financial Nervous System</div>", unsafe_allow_html=True)
 
 # ======================================================
-# CONTROL SECTION
+# CONTROL SECTION (LIVE)
 # ======================================================
 
 st.markdown("<div class='section'>", unsafe_allow_html=True)
 st.markdown("<div class='section-title'>System Control Interface</div>", unsafe_allow_html=True)
 
-col1, col2 = st.columns([3,1])
-
-with col1:
-    shock = st.slider("Macro Instability Amplifier", 0.0, 1.0, 0.0, 0.05)
-
-with col2:
-    run_system = st.button("Initialize System")
+instability_value = st.slider(
+    "Macro Instability Amplifier",
+    0.0,
+    1.0,
+    0.3,
+    0.01
+)
 
 st.markdown("</div>", unsafe_allow_html=True)
 
 # ======================================================
-# MAIN EXECUTION BLOCK (ONLY ONE)
+# LIVE INSTABILITY REACTOR
 # ======================================================
 
-if run_system:
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+st.markdown("<div class='section-title'>Instability Reactor</div>", unsafe_allow_html=True)
 
-    instability_value = min(0.3 + shock, 1.0)
+reactor_size = 220 + 200 * instability_value
+glow_strength = 20 + instability_value * 120
 
-    # ======================================================
-    # INSTABILITY REACTOR
-    # ======================================================
-
-    st.markdown("<div class='section'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>Instability Reactor</div>", unsafe_allow_html=True)
-
-    reactor_size = 220 + 200 * instability_value
-    glow_strength = 30 + instability_value * 80
-
-    st.markdown(f"""
+st.markdown(f"""
+<div style="
+    width:100%;
+    display:flex;
+    justify-content:center;
+    margin-top:40px;
+    margin-bottom:40px;
+">
     <div style="
-        width:100%;
+        width:{reactor_size}px;
+        height:{reactor_size}px;
+        border-radius:50%;
+        background: radial-gradient(circle at center,
+            rgba(255,255,255,0.95) 0%,
+            rgba(0,0,0,0.85) 100%);
         display:flex;
+        align-items:center;
         justify-content:center;
-        margin-top:40px;
-        margin-bottom:40px;
+        font-size:46px;
+        font-weight:600;
+        color:#111111;
+        box-shadow: 0 0 {glow_strength}px rgba(0,0,0,0.2);
+        transition: all 0.4s ease;
     ">
-        <div style="
-            width:{reactor_size}px;
-            height:{reactor_size}px;
-            border-radius:50%;
-            background: radial-gradient(circle at center,
-                rgba(255,255,255,0.95) 0%,
-                rgba(0,0,0,0.75) 100%);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:42px;
-            font-weight:600;
-            color:#111111;
-            box-shadow: 0 0 {glow_strength}px rgba(0,0,0,0.15);
-        ">
-            {round(instability_value,3)}
-        </div>
+        {round(instability_value,3)}
     </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
-    # ======================================================
-    # FORWARD EVOLUTION (CLEAN)
-    # ======================================================
+# ======================================================
+# LIVE FORWARD EVOLUTION
+# ======================================================
 
-    st.markdown("<div class='section'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>Forward Structural Evolution</div>", unsafe_allow_html=True)
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+st.markdown("<div class='section-title'>Forward Structural Evolution</div>", unsafe_allow_html=True)
 
-    projection_steps = 200
-    simulations = 800
-    base_capital = 1_000_000
+projection_steps = 180
+simulations = 600
+base_capital = 1_000_000
 
-    volatility = 0.006 + instability_value * 0.1
-    drift = 0.0002
+volatility = 0.006 + instability_value * 0.1
+drift = 0.0002
 
-    paths = []
+paths = []
 
-    for _ in range(simulations):
-        returns = np.random.normal(drift, volatility, projection_steps)
-        path = base_capital * np.cumprod(1 + returns)
-        paths.append(path)
+for _ in range(simulations):
+    returns = np.random.normal(drift, volatility, projection_steps)
+    path = base_capital * np.cumprod(1 + returns)
+    paths.append(path)
 
-    paths = np.array(paths)
+paths = np.array(paths)
 
-    median_path = np.median(paths, axis=0)
-    q05 = np.quantile(paths, 0.05, axis=0)
-    q95 = np.quantile(paths, 0.95, axis=0)
+median_path = np.median(paths, axis=0)
+q05 = np.quantile(paths, 0.05, axis=0)
+q95 = np.quantile(paths, 0.95, axis=0)
 
-    time_axis = np.arange(projection_steps)
+time_axis = np.arange(projection_steps)
 
-    fig = go.Figure()
+fig = go.Figure()
 
-    fig.add_trace(go.Scatter(
-        x=time_axis,
-        y=q95,
-        mode='lines',
-        line=dict(width=0),
-        showlegend=False
-    ))
+fig.add_trace(go.Scatter(
+    x=time_axis,
+    y=q95,
+    mode='lines',
+    line=dict(width=0),
+    showlegend=False
+))
 
-    fig.add_trace(go.Scatter(
-        x=time_axis,
-        y=q05,
-        fill='tonexty',
-        fillcolor='rgba(0,0,0,0.1)',
-        mode='lines',
-        line=dict(width=0),
-        showlegend=False
-    ))
+fig.add_trace(go.Scatter(
+    x=time_axis,
+    y=q05,
+    fill='tonexty',
+    fillcolor='rgba(0,0,0,0.08)',
+    mode='lines',
+    line=dict(width=0),
+    showlegend=False
+))
 
-    fig.add_trace(go.Scatter(
-        x=time_axis,
-        y=median_path,
-        mode='lines',
-        line=dict(width=4, color='black'),
-        showlegend=False
-    ))
+fig.add_trace(go.Scatter(
+    x=time_axis,
+    y=median_path,
+    mode='lines',
+    line=dict(width=4, color='black'),
+    showlegend=False
+))
 
-    fig.update_layout(
-        height=500,
-        template="plotly_white",
-        margin=dict(l=0, r=0, t=0, b=0)
-    )
+fig.update_layout(
+    height=520,
+    template="plotly_white",
+    margin=dict(l=0, r=0, t=0, b=0)
+)
 
-    fig.update_xaxes(visible=False)
-    fig.update_yaxes(visible=False)
+fig.update_xaxes(visible=False)
+fig.update_yaxes(visible=False)
 
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+st.plotly_chart(fig, use_container_width=True)
